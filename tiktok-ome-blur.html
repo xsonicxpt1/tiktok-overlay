@@ -50,24 +50,6 @@
       background: #111;
       filter: blur(var(--blur-radius));
     }
-    #webcam-container {
-      position: absolute;
-      top: calc(1240 * var(--vh) / 19.2);
-      left: calc(680 * var(--vw) / 10.8);
-      width: calc(360 * var(--vw) / 10.8);
-      height: calc(640 * var(--vh) / 19.2);
-      border-radius: calc(16 * var(--vw) / 10.8);
-      border: calc(3 * var(--vw) / 10.8) solid var(--primary);
-      overflow: hidden;
-      box-shadow: 0 calc(8 * var(--vh) / 19.2) calc(32 * var(--vh) / 19.2) rgba(255, 0, 80, 0.4), 0 0 0 calc(1 * var(--vw) / 10.8) rgba(255, 255, 255, 0.1) inset;
-      z-index: 10;
-    }
-    #webcam-container video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: rotateY(180deg);
-    }
     .live-badge {
       position: absolute;
       top: calc(40 * var(--vh) / 19.2);
@@ -105,27 +87,6 @@
       color: #888;
       z-index: 20;
       max-width: calc(400 * var(--vw) / 10.8);
-    }
-    .connection-status {
-      position: absolute;
-      top: calc(40 * var(--vh) / 19.2);
-      right: calc(40 * var(--vw) / 10.8);
-      padding: calc(8 * var(--vh) / 19.2) calc(16 * var(--vw) / 10.8);
-      border-radius: calc(8 * var(--vw) / 10.8);
-      font-size: calc(14 * var(--vw) / 10.8);
-      font-weight: 600;
-      z-index: 20;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(calc(4 * var(--vw) / 10.8));
-      border: calc(1 * var(--vw) / 10.8) solid #333;
-    }
-    .connection-status.connected {
-      border-color: #00F2EA;
-      color: #00F2EA;
-    }
-    .connection-status.disconnected {
-      border-color: #FF0050;
-      color: #FF0050;
     }
     .blur-indicator {
       position: absolute;
@@ -196,20 +157,15 @@
   <iframe id="ome-frame" src="https://ome.tv" title="Ome.tv" allow="camera; microphone" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
   <div class="blur-indicator" id="blur-indicator" title="Pressione 'B' ou clique no botão para alternar blur">BLUR: ON</div>
   <button class="blur-btn" id="blur-btn" title="Clique para alternar blur (tecla B)" aria-label="Alternar blur do estranho">BLUR</button>
-  
-  <div id="webcam-container">
-    <video id="webcam" autoplay muted playsinline></video>
-  </div>
-  
+
   <div class="live-badge" aria-live="polite">AO VIVO</div>
   <div class="handle-label">@pedropaiva63</div>
   <div class="privacy-notice">Estranho desfocado por privacidade (RGPD)</div>
-  <div class="connection-status disconnected" id="conn-status">Webcam: A conectar...</div>
 
   <script>
     const CONFIG_URL = 'config.json';
     let config = {};
-    
+
     async function loadConfig() {
       try {
         const res = await fetch(CONFIG_URL, { cache: 'no-cache' });
@@ -219,23 +175,11 @@
         console.warn('Config não carregado, usando defaults', e);
       }
     }
-    
+
     function applyConfig() {
       if (config.theme) {
         document.documentElement.style.setProperty('--primary', config.theme.primary);
         document.documentElement.style.setProperty('--blur-radius', config.theme.blurRadius || '8px');
-      }
-      if (config.layout?.webcam) {
-        const wc = document.getElementById('webcam-container');
-        Object.assign(wc.style, {
-          top: config.layout.webcam.y + 'px',
-          left: config.layout.webcam.x + 'px',
-          width: config.layout.webcam.width + 'px',
-          height: config.layout.webcam.height + 'px',
-          borderRadius: config.layout.webcam.borderRadius + 'px',
-          borderWidth: config.layout.webcam.borderWidth + 'px',
-          borderColor: config.layout.webcam.borderColor
-        });
       }
       if (config.layout?.liveBadge) {
         const lb = document.querySelector('.live-badge');
@@ -270,46 +214,13 @@
         document.getElementById('ome-frame').src = config.urls.ometv;
       }
     }
-    
-    async function startWebcam() {
-      const video = document.getElementById('webcam');
-      const status = document.getElementById('conn-status');
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 720 }, height: { ideal: 1280 }, facingMode: 'user' },
-          audio: false
-        });
-        video.srcObject = stream;
-        await video.play();
-        status.textContent = 'Webcam: Conectada ✓';
-        status.className = 'connection-status connected';
-      } catch (err) {
-        console.error('Erro webcam:', err);
-        status.textContent = 'Webcam: Erro - ' + err.name;
-        status.className = 'connection-status disconnected';
-      }
-    }
-    
-    document.addEventListener('DOMContentLoaded', async () => {
-      await loadConfig();
-      startWebcam();
-    });
-    
-    document.addEventListener('visibilitychange', () => {
-      const video = document.getElementById('webcam');
-      if (document.hidden) {
-        video.pause();
-      } else {
-        video.play().catch(() => {});
-      }
-    });
-    
+
     // Blur toggle (tecla B + botão)
     let blurEnabled = true;
     const omeFrame = document.getElementById('ome-frame');
     const blurIndicator = document.getElementById('blur-indicator');
     const blurBtn = document.getElementById('blur-btn');
-    
+
     function toggleBlur() {
       blurEnabled = !blurEnabled;
       omeFrame.style.filter = blurEnabled ? 'blur(var(--blur-radius))' : 'none';
@@ -319,10 +230,10 @@
       blurBtn.textContent = blurEnabled ? 'BLUR' : 'BLUR';
       console.log('Blur:', blurEnabled ? 'ON' : 'OFF');
     }
-    
+
     // Botão clicável (funciona sem foco)
     blurBtn.addEventListener('click', toggleBlur);
-    
+
     // Tecla B (precisa foco)
     document.addEventListener('keydown', (e) => {
       if (e.key.toLowerCase() === 'b' && !e.target.matches('input, textarea, button')) {
@@ -330,13 +241,15 @@
         toggleBlur();
       }
     });
-    
+
     // postMessage (controlo remoto / OBS hotkey)
     window.addEventListener('message', (e) => {
       if (e.data?.type === 'TOGGLE_BLUR') {
         toggleBlur();
       }
     });
+
+    loadConfig();
   </script>
 </body>
 </html>
