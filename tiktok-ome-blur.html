@@ -147,14 +147,55 @@
       border-color: #FF0050;
       color: #FF0050;
     }
+    .blur-btn {
+      position: absolute;
+      top: calc(40 * var(--vh) / 19.2);
+      right: calc(40 * var(--vw) / 10.8);
+      width: calc(48 * var(--vw) / 10.8);
+      height: calc(48 * var(--vh) / 19.2);
+      border-radius: calc(8 * var(--vw) / 10.8);
+      border: calc(2 * var(--vw) / 10.8) solid var(--primary);
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(calc(4 * var(--vw) / 10.8));
+      color: var(--primary);
+      font-family: monospace;
+      font-size: calc(11 * var(--vw) / 10.8);
+      font-weight: 700;
+      cursor: pointer;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .blur-btn:hover {
+      background: var(--primary);
+      color: var(--bg);
+      transform: scale(1.05);
+    }
+    .blur-btn:active {
+      transform: scale(0.98);
+    }
+    .blur-btn.blur-off {
+      border-color: #666;
+      color: #888;
+    }
+    .blur-btn.blur-off:hover {
+      border-color: #FF0050;
+      color: #FF0050;
+      background: rgba(255, 0, 80, 0.1);
+    }
     @media (prefers-reduced-motion: reduce) {
       .live-badge { animation: none; }
+      .blur-btn { transition: none; }
     }
   </style>
 </head>
 <body>
   <iframe id="ome-frame" src="https://ome.tv" title="Ome.tv" allow="camera; microphone" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
-  <div class="blur-indicator" id="blur-indicator" title="Pressione 'B' para alternar blur">BLUR: ON</div>
+  <div class="blur-indicator" id="blur-indicator" title="Pressione 'B' ou clique no botão para alternar blur">BLUR: ON</div>
+  <button class="blur-btn" id="blur-btn" title="Clique para alternar blur (tecla B)" aria-label="Alternar blur do estranho">BLUR</button>
   
   <div id="webcam-container">
     <video id="webcam" autoplay muted playsinline></video>
@@ -263,27 +304,34 @@
       }
     });
     
-    // Blur toggle (tecla B)
+    // Blur toggle (tecla B + botão)
     let blurEnabled = true;
     const omeFrame = document.getElementById('ome-frame');
     const blurIndicator = document.getElementById('blur-indicator');
+    const blurBtn = document.getElementById('blur-btn');
     
     function toggleBlur() {
       blurEnabled = !blurEnabled;
       omeFrame.style.filter = blurEnabled ? 'blur(var(--blur-radius))' : 'none';
       blurIndicator.textContent = blurEnabled ? 'BLUR: ON' : 'BLUR: OFF';
       blurIndicator.classList.toggle('blur-off', !blurEnabled);
+      blurBtn.classList.toggle('blur-off', !blurEnabled);
+      blurBtn.textContent = blurEnabled ? 'BLUR' : 'BLUR';
       console.log('Blur:', blurEnabled ? 'ON' : 'OFF');
     }
     
+    // Botão clicável (funciona sem foco)
+    blurBtn.addEventListener('click', toggleBlur);
+    
+    // Tecla B (precisa foco)
     document.addEventListener('keydown', (e) => {
-      if (e.key.toLowerCase() === 'b' && !e.target.matches('input, textarea')) {
+      if (e.key.toLowerCase() === 'b' && !e.target.matches('input, textarea, button')) {
         e.preventDefault();
         toggleBlur();
       }
     });
     
-    // Também expõe para postMessage (controlo remoto)
+    // postMessage (controlo remoto / OBS hotkey)
     window.addEventListener('message', (e) => {
       if (e.data?.type === 'TOGGLE_BLUR') {
         toggleBlur();
