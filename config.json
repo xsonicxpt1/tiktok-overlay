@@ -1,0 +1,85 @@
+{
+  "githubUsername": "xsonicxpt1",
+  "repoName": "tiktok-overlay",
+  "tiktokHandle": "pedropaiva63",
+  "streamTitle": "Ome.tv ao vivo",
+  "theme": {
+    "primary": "#FF0050",
+    "secondary": "#FFFFFF",
+    "background": "#000000",
+    "accent": "#00F2EA",
+    "blurRadius": "8px",
+    "fontFamily": "system-ui, -apple-system, sans-serif"
+  },
+  "layout": {
+    "width": 1080,
+    "height": 1920,
+    "ome": {
+      "x": 0,
+      "y": 0,
+      "width": 1080,
+      "height": 1920,
+      "crop": "9:16",
+      "blur": true
+    },
+    "webcam": {
+      "x": 680,
+      "y": 1240,
+      "width": 360,
+      "height": 640,
+      "borderRadius": 16,
+      "borderWidth": 3,
+      "borderColor": "#FF0050"
+    },
+    "liveBadge": {
+      "x": 40,
+      "y": 40,
+      "text": "AO VIVO",
+      "fontSize": 28,
+      "padding": "8px 16px",
+      "background": "#FF0050",
+      "color": "#FFFFFF",
+      "borderRadius": 8
+    },
+    "handleLabel": {
+      "x": 40,
+      "y": 100,
+      "text": "@pedropaiva63",
+      "fontSize": 22,
+      "color": "#FFFFFF",
+      "textShadow": "0 2px 8px rgba(0,0,0,0.8)"
+    },
+    "privacyNotice": {
+      "x": 40,
+      "y": 1840,
+      "text": "Estranho desfocado por privacidade (RGPD)",
+      "fontSize": 14,
+      "color": "#888888"
+    }
+  },
+  "alerts": {
+    "enabled": true,
+    "sound": true,
+    "sfx": {
+      "follow": "https://cdn.jsdelivr.net/gh/xsonicxpt1/tiktok-overlay@main/assets/sfx/follow.mp3",
+      "gift": "https://cdn.jsdelivr.net/gh/xsonicxpt1/tiktok-overlay@main/assets/sfx/gift.mp3",
+      "subscribe": "https://cdn.jsdelivr.net/gh/xsonicxpt1/tiktok-overlay@main/assets/sfx/subscribe.mp3",
+      "like": "https://cdn.jsdelivr.net/gh/xsonicxpt1/tiktok-overlay@main/assets/sfx/like.mp3"
+    },
+    "duration": 4000,
+    "position": "top-center",
+    "animation": "slide-down"
+  },
+  "chat": {
+    "enabled": false,
+    "maxMessages": 3,
+    "position": "left",
+    "webSocketUrl": ""
+  },
+  "urls": {
+    "ometv": "https://ome.tv",
+    "githubPagesBase": "https://xsonicxpt1.github.io/tiktok-overlay",
+    "mainOverlay": "https://xsonicxpt1.github.io/tiktok-overlay/tiktok-ome-blur.html",
+    "alertsOverlay": "https://xsonicxpt1.github.io/tiktok-overlay/tiktok-alerts.html"
+  }
+}

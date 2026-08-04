@@ -1,0 +1,18 @@
+# TikTok Overlay Pack
+# Deploy: push to GitHub Pages
+
+# Ignore local config overrides
+config.local.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

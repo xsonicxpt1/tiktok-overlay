@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, height=1920, initial-scale=1.0, user-scalable=no">
+  <title>TikTok Alerts Overlay - @pedropaiva63</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #FF0050;
+      --secondary: #FFFFFF;
+      --bg: transparent;
+      --accent: #00F2EA;
+      --font: system-ui, -apple-system, sans-serif;
+    }
+    body {
+      width: 1080px;
+      height: 1920px;
+      background: var(--bg);
+      font-family: var(--font);
+      color: var(--secondary);
+      overflow: hidden;
+      position: relative;
+      pointer-events: none;
+    }
+    .alert {
+      position: absolute;
+      top: 160px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    }
+    .alert.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .alert.hide {
+      transform: translateX(-50%) translateY(-100px);
+      opacity: 0;
+    }
+    .alert-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95));
+      border: 2px solid var(--primary);
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(255, 0, 80, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      backdrop-filter: blur(8px);
+      min-width: 400px;
+      max-width: 800px;
+    }
+    .alert-icon {
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #ff4d7a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 4px 20px rgba(255, 0, 80, 0.6);
+    }
+    .alert-icon.gift { background: linear-gradient(135deg, #00F2EA, #00ffea); box-shadow: 0 4px 20px rgba(0, 242, 234, 0.6); }
+    .alert-icon.subscribe { background: linear-gradient(135deg, #FFD700, #FFA500); box-shadow: 0 4px 20px rgba(255, 215, 0, 0.6); }
+    .alert-icon.like { background: linear-gradient(135deg, #FF0050, #ff4d7a); box-shadow: 0 4px 20px rgba(255, 0, 80, 0.6); }
+    .alert-text { flex: 1; text-align: left; }
+    .alert-event { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); margin-bottom: 4px; }
+    .alert-event.gift { color: #00F2EA; }
+    .alert-event.subscribe { color: #FFD700; }
+    .alert-event.like { color: #FF0050; }
+    .alert-user { font-size: 28px; font-weight: 700; color: var(--secondary); text-shadow: 0 2px 8px rgba(0,0,0,0.8); }
+    .alert-gift-name { font-size: 16px; color: var(--accent); font-weight: 500; margin-top: 4px; }
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    .alert-content::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+      background-size: 200% 100%;
+      border-radius: 18px;
+      z-index: -1;
+      animation: shimmer 3s linear infinite;
+      opacity: 0.5;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .alert { transition: opacity 0.2s ease; }
+      .alert.show { transform: translateX(-50%) translateY(0); }
+      .alert-content::before { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="alert-container"></div>
+
+  <script>
+    const CONFIG_URL = 'config.json';
+    let config = {};
+    const audioCache = {};
+    
+    async function loadConfig() {
+      try {
+        const res = await fetch(CONFIG_URL, { cache: 'no-cache' });
+        config = await res.json();
+        preloadAudio();
+      } catch (e) {
+        console.warn('Config não carregado', e);
+      }
+    }
+    
+    function preloadAudio() {
+      if (!config.alerts?.sound) return;
+      Object.entries(config.alerts.sfx || {}).forEach(([key, url]) => {
+        const audio = new Audio(url);
+        audio.volume = 0.6;
+        audio.preload = 'auto';
+        audioCache[key] = audio;
+      });
+    }
+    
+    function playSfx(type) {
+      if (!config.alerts?.sound) return;
+      const audio = audioCache[type];
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      }
+    }
+    
+    function showAlert(event, user, giftName = null) {
+      const container = document.getElementById('alert-container');
+      const alert = document.createElement('div');
+      alert.className = 'alert';
+      
+      const icons = {
+        follow: '👤',
+        gift: '🎁',
+        subscribe: '⭐',
+        like: '❤️'
+      };
+      const iconClass = {
+        follow: '',
+        gift: 'gift',
+        subscribe: 'subscribe',
+        like: 'like'
+      };
+      const labels = {
+        follow: 'Novo Seguidor',
+        gift: 'Presente Recebido',
+        subscribe: 'Nova Inscrição',
+        like: 'Like'
+      };
+      
+      alert.innerHTML = `
+        <div class="alert-content">
+          <div class="alert-icon ${iconClass[event]}">${icons[event]}</div>
+          <div class="alert-text">
+            <div class="alert-event ${iconClass[event]}">${labels[event]}</div>
+            <div class="alert-user">${user}</div>
+            ${giftName ? `<div class="alert-gift-name">${giftName}</div>` : ''}
+          </div>
+        </div>
+      `;
+      
+      container.appendChild(alert);
+      
+      requestAnimationFrame(() => {
+        alert.classList.add('show');
+      });
+      
+      playSfx(event);
+      
+      const duration = config.alerts?.duration || 4000;
+      setTimeout(() => {
+        alert.classList.remove('show');
+        alert.classList.add('hide');
+        setTimeout(() => alert.remove(), 500);
+      }, duration);
+    }
+    
+    function parseUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const event = params.get('event');
+      const user = params.get('user') || 'Alguém';
+      const gift = params.get('gift');
+      return { event, user, gift };
+    }
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadConfig();
+      
+      const { event, user, gift } = parseUrlParams();
+      if (event && config.alerts?.enabled) {
+        showAlert(event, user, gift);
+      }
+      
+      window.addEventListener('message', (e) => {
+        if (e.data?.type === 'TIKTOK_ALERT') {
+          showAlert(e.data.event, e.data.user, e.data.gift);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

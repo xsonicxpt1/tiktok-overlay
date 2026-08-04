@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, height=1920, initial-scale=1.0, user-scalable=no">
+  <title>Ome.tv Live Overlay - @pedropaiva63</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #FF0050;
+      --secondary: #FFFFFF;
+      --bg: #000000;
+      --accent: #00F2EA;
+      --blur-radius: 8px;
+      --font: system-ui, -apple-system, sans-serif;
+    }
+    body {
+      width: 1080px;
+      height: 1920px;
+      background: var(--bg);
+      font-family: var(--font);
+      color: var(--secondary);
+      overflow: hidden;
+      position: relative;
+    }
+    #ome-frame {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1080px;
+      height: 1920px;
+      border: none;
+      background: #111;
+      filter: blur(var(--blur-radius));
+      transform: scale(1.02);
+    }
+    #webcam-container {
+      position: absolute;
+      top: 1240px;
+      left: 680px;
+      width: 360px;
+      height: 640px;
+      border-radius: 16px;
+      border: 3px solid var(--primary);
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(255, 0, 80, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      z-index: 10;
+    }
+    #webcam-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: rotateY(180deg);
+    }
+    .live-badge {
+      position: absolute;
+      top: 40px;
+      left: 40px;
+      background: var(--primary);
+      color: var(--secondary);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      z-index: 20;
+      animation: pulse 2s ease-in-out infinite;
+      box-shadow: 0 4px 20px rgba(255, 0, 80, 0.6);
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 4px 20px rgba(255, 0, 80, 0.6); }
+      50% { box-shadow: 0 4px 30px rgba(255, 0, 80, 0.9); }
+    }
+    .handle-label {
+      position: absolute;
+      top: 100px;
+      left: 40px;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--secondary);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+      z-index: 20;
+    }
+    .privacy-notice {
+      position: absolute;
+      bottom: 40px;
+      left: 40px;
+      font-size: 14px;
+      color: #888;
+      z-index: 20;
+      max-width: 400px;
+    }
+    .connection-status {
+      position: absolute;
+      top: 40px;
+      right: 40px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 20;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      border: 1px solid #333;
+    }
+    .connection-status.connected {
+      border-color: #00F2EA;
+      color: #00F2EA;
+    }
+    .connection-status.disconnected {
+      border-color: #FF0050;
+      color: #FF0050;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .live-badge { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <iframe id="ome-frame" src="https://ome.tv" title="Ome.tv" allow="camera; microphone" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+  
+  <div id="webcam-container">
+    <video id="webcam" autoplay muted playsinline></video>
+  </div>
+  
+  <div class="live-badge" aria-live="polite">AO VIVO</div>
+  <div class="handle-label">@pedropaiva63</div>
+  <div class="privacy-notice">Estranho desfocado por privacidade (RGPD)</div>
+  <div class="connection-status disconnected" id="conn-status">Webcam: A conectar...</div>
+
+  <script>
+    const CONFIG_URL = 'config.json';
+    let config = {};
+    
+    async function loadConfig() {
+      try {
+        const res = await fetch(CONFIG_URL, { cache: 'no-cache' });
+        config = await res.json();
+        applyConfig();
+      } catch (e) {
+        console.warn('Config não carregado, usando defaults', e);
+      }
+    }
+    
+    function applyConfig() {
+      if (config.theme) {
+        document.documentElement.style.setProperty('--primary', config.theme.primary);
+        document.documentElement.style.setProperty('--blur-radius', config.theme.blurRadius || '8px');
+      }
+      if (config.layout?.webcam) {
+        const wc = document.getElementById('webcam-container');
+        Object.assign(wc.style, {
+          top: config.layout.webcam.y + 'px',
+          left: config.layout.webcam.x + 'px',
+          width: config.layout.webcam.width + 'px',
+          height: config.layout.webcam.height + 'px',
+          borderRadius: config.layout.webcam.borderRadius + 'px',
+          borderWidth: config.layout.webcam.borderWidth + 'px',
+          borderColor: config.layout.webcam.borderColor
+        });
+      }
+      if (config.layout?.liveBadge) {
+        const lb = document.querySelector('.live-badge');
+        Object.assign(lb.style, {
+          top: config.layout.liveBadge.y + 'px',
+          left: config.layout.liveBadge.x + 'px',
+          fontSize: config.layout.liveBadge.fontSize + 'px',
+          background: config.layout.liveBadge.background,
+          color: config.layout.liveBadge.color
+        });
+        lb.textContent = config.layout.liveBadge.text;
+      }
+      if (config.layout?.handleLabel) {
+        const hl = document.querySelector('.handle-label');
+        Object.assign(hl.style, {
+          top: config.layout.handleLabel.y + 'px',
+          left: config.layout.handleLabel.x + 'px',
+          fontSize: config.layout.handleLabel.fontSize + 'px'
+        });
+        hl.textContent = config.layout.handleLabel.text;
+      }
+      if (config.layout?.privacyNotice) {
+        const pn = document.querySelector('.privacy-notice');
+        Object.assign(pn.style, {
+          bottom: (1920 - config.layout.privacyNotice.y - config.layout.privacyNotice.fontSize) + 'px',
+          left: config.layout.privacyNotice.x + 'px',
+          fontSize: config.layout.privacyNotice.fontSize + 'px'
+        });
+        pn.textContent = config.layout.privacyNotice.text;
+      }
+      if (config.urls?.ometv) {
+        document.getElementById('ome-frame').src = config.urls.ometv;
+      }
+    }
+    
+    async function startWebcam() {
+      const video = document.getElementById('webcam');
+      const status = document.getElementById('conn-status');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 720 }, height: { ideal: 1280 }, facingMode: 'user' },
+          audio: false
+        });
+        video.srcObject = stream;
+        await video.play();
+        status.textContent = 'Webcam: Conectada ✓';
+        status.className = 'connection-status connected';
+      } catch (err) {
+        console.error('Erro webcam:', err);
+        status.textContent = 'Webcam: Erro - ' + err.name;
+        status.className = 'connection-status disconnected';
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadConfig();
+      startWebcam();
+    });
+    
+    document.addEventListener('visibilitychange', () => {
+      const video = document.getElementById('webcam');
+      if (document.hidden) {
+        video.pause();
+      } else {
+        video.play().catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>
