@@ -111,6 +111,26 @@
       border-color: #FF0050;
       color: #FF0050;
     }
+    .blur-indicator {
+      position: absolute;
+      top: 40px;
+      right: 200px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 20;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      border: 1px solid #333;
+      color: #00F2EA;
+      font-family: monospace;
+      transition: all 0.2s ease;
+    }
+    .blur-indicator.blur-off {
+      border-color: #FF0050;
+      color: #FF0050;
+    }
     @media (prefers-reduced-motion: reduce) {
       .live-badge { animation: none; }
     }
@@ -118,6 +138,7 @@
 </head>
 <body>
   <iframe id="ome-frame" src="https://ome.tv" title="Ome.tv" allow="camera; microphone" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+  <div class="blur-indicator" id="blur-indicator" title="Pressione 'B' para alternar blur">BLUR: ON</div>
   
   <div id="webcam-container">
     <video id="webcam" autoplay muted playsinline></video>
@@ -223,6 +244,33 @@
         video.pause();
       } else {
         video.play().catch(() => {});
+      }
+    });
+    
+    // Blur toggle (tecla B)
+    let blurEnabled = true;
+    const omeFrame = document.getElementById('ome-frame');
+    const blurIndicator = document.getElementById('blur-indicator');
+    
+    function toggleBlur() {
+      blurEnabled = !blurEnabled;
+      omeFrame.style.filter = blurEnabled ? 'blur(var(--blur-radius))' : 'none';
+      blurIndicator.textContent = blurEnabled ? 'BLUR: ON' : 'BLUR: OFF';
+      blurIndicator.classList.toggle('blur-off', !blurEnabled);
+      console.log('Blur:', blurEnabled ? 'ON' : 'OFF');
+    }
+    
+    document.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'b' && !e.target.matches('input, textarea')) {
+        e.preventDefault();
+        toggleBlur();
+      }
+    });
+    
+    // Também expõe para postMessage (controlo remoto)
+    window.addEventListener('message', (e) => {
+      if (e.data?.type === 'TOGGLE_BLUR') {
+        toggleBlur();
       }
     });
   </script>
