@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1080, height=1920, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Ome.tv Live Overlay - @pedropaiva63</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,37 +13,53 @@
       --accent: #00F2EA;
       --blur-radius: 8px;
       --font: system-ui, -apple-system, sans-serif;
+      --vw: 10.8px;   /* 1080 / 100 */
+      --vh: 19.2px;   /* 1920 / 100 */
+    }
+    @media (max-width: 1080px) {
+      :root {
+        --vw: calc(100vw / 100);
+        --vh: calc(100vw * 1920 / 1080 / 100);
+      }
+    }
+    @media (max-height: 1920px) {
+      :root {
+        --vh: calc(100vh / 100);
+        --vw: calc(100vh * 1080 / 1920 / 100);
+      }
     }
     body {
-      width: 1080px;
-      height: 1920px;
+      width: 100vw;
+      max-width: 100%;
+      height: 100vh;
+      max-height: 100%;
       background: var(--bg);
       font-family: var(--font);
       color: var(--secondary);
       overflow: hidden;
       position: relative;
+      aspect-ratio: 1080 / 1920;
     }
     #ome-frame {
       position: absolute;
       top: 0;
       left: 0;
-      width: 1080px;
-      height: 1920px;
+      width: 100%;
+      height: 100%;
       border: none;
       background: #111;
       filter: blur(var(--blur-radius));
-      transform: scale(1.02);
     }
     #webcam-container {
       position: absolute;
-      top: 1240px;
-      left: 680px;
-      width: 360px;
-      height: 640px;
-      border-radius: 16px;
-      border: 3px solid var(--primary);
+      top: calc(1240 * var(--vh) / 19.2);
+      left: calc(680 * var(--vw) / 10.8);
+      width: calc(360 * var(--vw) / 10.8);
+      height: calc(640 * var(--vh) / 19.2);
+      border-radius: calc(16 * var(--vw) / 10.8);
+      border: calc(3 * var(--vw) / 10.8) solid var(--primary);
       overflow: hidden;
-      box-shadow: 0 8px 32px rgba(255, 0, 80, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      box-shadow: 0 calc(8 * var(--vh) / 19.2) calc(32 * var(--vh) / 19.2) rgba(255, 0, 80, 0.4), 0 0 0 calc(1 * var(--vw) / 10.8) rgba(255, 255, 255, 0.1) inset;
       z-index: 10;
     }
     #webcam-container video {
@@ -54,54 +70,54 @@
     }
     .live-badge {
       position: absolute;
-      top: 40px;
-      left: 40px;
+      top: calc(40 * var(--vh) / 19.2);
+      left: calc(40 * var(--vw) / 10.8);
       background: var(--primary);
       color: var(--secondary);
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 28px;
+      padding: calc(8 * var(--vh) / 19.2) calc(16 * var(--vw) / 10.8);
+      border-radius: calc(8 * var(--vw) / 10.8);
+      font-size: calc(28 * var(--vw) / 10.8);
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: calc(1 * var(--vw) / 10.8);
       z-index: 20;
       animation: pulse 2s ease-in-out infinite;
-      box-shadow: 0 4px 20px rgba(255, 0, 80, 0.6);
+      box-shadow: 0 calc(4 * var(--vh) / 19.2) calc(20 * var(--vh) / 19.2) rgba(255, 0, 80, 0.6);
     }
     @keyframes pulse {
-      0%, 100% { box-shadow: 0 4px 20px rgba(255, 0, 80, 0.6); }
-      50% { box-shadow: 0 4px 30px rgba(255, 0, 80, 0.9); }
+      0%, 100% { box-shadow: 0 calc(4 * var(--vh) / 19.2) calc(20 * var(--vh) / 19.2) rgba(255, 0, 80, 0.6); }
+      50% { box-shadow: 0 calc(4 * var(--vh) / 19.2) calc(30 * var(--vh) / 19.2) rgba(255, 0, 80, 0.9); }
     }
     .handle-label {
       position: absolute;
-      top: 100px;
-      left: 40px;
-      font-size: 22px;
+      top: calc(100 * var(--vh) / 19.2);
+      left: calc(40 * var(--vw) / 10.8);
+      font-size: calc(22 * var(--vw) / 10.8);
       font-weight: 600;
       color: var(--secondary);
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+      text-shadow: 0 calc(2 * var(--vh) / 19.2) calc(8 * var(--vh) / 19.2) rgba(0, 0, 0, 0.8);
       z-index: 20;
     }
     .privacy-notice {
       position: absolute;
-      bottom: 40px;
-      left: 40px;
-      font-size: 14px;
+      bottom: calc(40 * var(--vh) / 19.2);
+      left: calc(40 * var(--vw) / 10.8);
+      font-size: calc(14 * var(--vw) / 10.8);
       color: #888;
       z-index: 20;
-      max-width: 400px;
+      max-width: calc(400 * var(--vw) / 10.8);
     }
     .connection-status {
       position: absolute;
-      top: 40px;
-      right: 40px;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 14px;
+      top: calc(40 * var(--vh) / 19.2);
+      right: calc(40 * var(--vw) / 10.8);
+      padding: calc(8 * var(--vh) / 19.2) calc(16 * var(--vw) / 10.8);
+      border-radius: calc(8 * var(--vw) / 10.8);
+      font-size: calc(14 * var(--vw) / 10.8);
       font-weight: 600;
       z-index: 20;
       background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
-      border: 1px solid #333;
+      backdrop-filter: blur(calc(4 * var(--vw) / 10.8));
+      border: calc(1 * var(--vw) / 10.8) solid #333;
     }
     .connection-status.connected {
       border-color: #00F2EA;
@@ -113,16 +129,16 @@
     }
     .blur-indicator {
       position: absolute;
-      top: 40px;
-      right: 200px;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
+      top: calc(40 * var(--vh) / 19.2);
+      right: calc(200 * var(--vw) / 10.8);
+      padding: calc(6 * var(--vh) / 19.2) calc(12 * var(--vw) / 10.8);
+      border-radius: calc(6 * var(--vw) / 10.8);
+      font-size: calc(12 * var(--vw) / 10.8);
       font-weight: 600;
       z-index: 20;
       background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
-      border: 1px solid #333;
+      backdrop-filter: blur(calc(4 * var(--vw) / 10.8));
+      border: calc(1 * var(--vw) / 10.8) solid #333;
       color: #00F2EA;
       font-family: monospace;
       transition: all 0.2s ease;
